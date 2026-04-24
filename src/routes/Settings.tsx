@@ -1,0 +1,57 @@
+import { useTimer } from "../features/timer/timerStore";
+
+const WORK_OPTIONS = [15, 25, 45, 60, 90];
+const BREAK_OPTIONS = [5, 7, 10, 15];
+
+export default function Settings() {
+  const workDuration = useTimer((s) => s.workDuration);
+  const breakDuration = useTimer((s) => s.breakDuration);
+  const setWorkDuration = useTimer((s) => s.setWorkDuration);
+  const setBreakDuration = useTimer((s) => s.setBreakDuration);
+
+  return (
+    <div className="max-w-md mx-auto px-6 py-8 flex flex-col gap-8">
+      <div>
+        <div className="text-sm uppercase tracking-widest text-muted mb-3">
+          Work Duration
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {WORK_OPTIONS.map((m) => (
+            <button
+              key={m}
+              onClick={() => setWorkDuration(m * 60)}
+              className={`px-4 py-2 rounded-lg border text-sm ${
+                workDuration === m * 60
+                  ? "bg-accent/20 border-accent"
+                  : "bg-surface border-border text-muted hover:text-text"
+              }`}
+            >
+              {m} min
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="text-sm uppercase tracking-widest text-muted mb-3">
+          Break Duration
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {BREAK_OPTIONS.map((m) => (
+            <button
+              key={m}
+              onClick={() => setBreakDuration(m * 60)}
+              className={`px-4 py-2 rounded-lg border text-sm ${
+                breakDuration === m * 60
+                  ? "bg-accent/20 border-accent"
+                  : "bg-surface border-border text-muted hover:text-text"
+              }`}
+            >
+              {m} min
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
