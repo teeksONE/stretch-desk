@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default permissions for Stretch Desk",
-  "windows": ["main", "break"],
+  "windows": ["main", "break", "warning"],
   "permissions": [
     "core:default",
     "opener:default",

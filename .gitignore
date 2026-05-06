@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+target/
+
+# Office lock files
+~$*
+
+# Distribution archives (attached to GitHub Releases, not tracked)
+*.zip
+
+# Generated mobile icons (not used; regenerate via `npm run tauri icon`)
+src-tauri/icons/android/
+src-tauri/icons/ios/
