@@ -2,9 +2,28 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { invoke } from "@tauri-apps/api/core";
 import { playChime } from "./chime";
+import type { SkillLevel, UserBodyArea } from "../../content/library";
 
 export type Category = "stretch" | "strength" | "move" | "meditate";
 export type Phase = "idle" | "working" | "break";
+
+export type Workspace = "seated" | "standing-ok";
+
+export interface Profile {
+  areasOfFocus: UserBodyArea[];
+  skillLevel: SkillLevel;
+  workspace: Workspace;
+  equipment: string[];
+  onboardingComplete: boolean;
+}
+
+export const DEFAULT_PROFILE: Profile = {
+  areasOfFocus: [],
+  skillLevel: "beginner",
+  workspace: "standing-ok",
+  equipment: [],
+  onboardingComplete: false,
+};
 
 interface TimerState {
   phase: Phase;
@@ -13,11 +32,20 @@ interface TimerState {
   breakDuration: number;
   category: Category;
   warningLeadTime: number;
+  profile: Profile;
 
   setWorkDuration: (s: number) => void;
   setBreakDuration: (s: number) => void;
   setCategory: (c: Category) => void;
   setWarningLeadTime: (s: number) => void;
+
+  setProfileAreasOfFocus: (areas: UserBodyArea[]) => void;
+  setProfileSkillLevel: (level: SkillLevel) => void;
+  setProfileWorkspace: (workspace: Workspace) => void;
+  setProfileEquipment: (items: string[]) => void;
+  toggleProfileEquipment: (item: string) => void;
+  completeOnboarding: () => void;
+  resetOnboarding: () => void;
 
   start: () => void;
   stop: () => void;
@@ -34,11 +62,34 @@ export const useTimer = create<TimerState>()(
       breakDuration: 5 * 60, // Change to 20 for testing
       category: "stretch",
       warningLeadTime: 10,
+      profile: DEFAULT_PROFILE,
 
       setWorkDuration: (s) => set({ workDuration: s }),
       setBreakDuration: (s) => set({ breakDuration: s }),
       setCategory: (c) => set({ category: c }),
       setWarningLeadTime: (s) => set({ warningLeadTime: s }),
+
+      setProfileAreasOfFocus: (areas) =>
+        set((s) => ({ profile: { ...s.profile, areasOfFocus: areas } })),
+      setProfileSkillLevel: (level) =>
+        set((s) => ({ profile: { ...s.profile, skillLevel: level } })),
+      setProfileWorkspace: (workspace) =>
+        set((s) => ({ profile: { ...s.profile, workspace } })),
+      setProfileEquipment: (items) =>
+        set((s) => ({ profile: { ...s.profile, equipment: items } })),
+      toggleProfileEquipment: (item) =>
+        set((s) => ({
+          profile: {
+            ...s.profile,
+            equipment: s.profile.equipment.includes(item)
+              ? s.profile.equipment.filter((e) => e !== item)
+              : [...s.profile.equipment, item],
+          },
+        })),
+      completeOnboarding: () =>
+        set((s) => ({ profile: { ...s.profile, onboardingComplete: true } })),
+      resetOnboarding: () =>
+        set((s) => ({ profile: { ...s.profile, onboardingComplete: false } })),
 
       start: () => {
         const { workDuration } = get();
@@ -106,6 +157,7 @@ export const useTimer = create<TimerState>()(
         breakDuration: state.breakDuration,
         category: state.category,
         warningLeadTime: state.warningLeadTime,
+        profile: state.profile,
       }),
     },
   ),

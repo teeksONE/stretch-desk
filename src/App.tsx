@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { useTimer } from "./features/timer/timerStore";
@@ -6,7 +6,15 @@ import { useTimer } from "./features/timer/timerStore";
 function App() {
   const tick = useTimer((s) => s.tick);
   const endBreak = useTimer((s) => s.endBreak);
+  const onboardingComplete = useTimer((s) => s.profile.onboardingComplete);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!onboardingComplete) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [onboardingComplete, navigate]);
 
   useEffect(() => {
     const id = setInterval(() => tick(), 1000);

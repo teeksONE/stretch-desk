@@ -6,12 +6,14 @@ import Timer from "./routes/Timer";
 import BreakOverlay from "./routes/BreakOverlay";
 import Settings from "./routes/Settings";
 import Warning from "./routes/Warning";
+import Onboarding from "./routes/Onboarding";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <HashRouter>
       <Routes>
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/" element={<App />}>
           <Route index element={<Timer />} />
           <Route path="settings" element={<Settings />} />
