@@ -70,7 +70,7 @@ export const USER_AREA_LABELS: Record<UserBodyArea, string> = {
   neck: "Neck",
   shoulders: "Shoulders",
   chest: "Chest",
-  back: "Back & spine",
+  back: "Back",
   hips: "Hips",
   legs: "Legs",
   arms: "Arms",

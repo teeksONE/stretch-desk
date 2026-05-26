@@ -149,14 +149,14 @@ export default function BreakOverlay() {
           <p className="max-w-xl text-center text-lg text-muted leading-relaxed mb-8">
             {currentStep.instruction}
           </p>
-          <div className="text-6xl font-mono tabular-nums mb-3">
+          <div className="text-6xl font-mono tabular-nums mb-6">
             {String(stepRemaining).padStart(2, "0")}s
           </div>
           <button
             onClick={handleNextStep}
-            className="text-sm text-muted hover:text-text mb-10"
+            className="px-6 py-2 mb-10 border border-border rounded-lg text-sm text-text bg-surface hover:border-muted transition"
           >
-            Next step →
+            Next exercise →
           </button>
         </>
       ) : (

@@ -8,36 +8,26 @@ import {
 } from "../content/library";
 import { EQUIPMENT_OPTIONS, type Equipment } from "../content/equipment";
 
-const USER_AREAS: UserBodyArea[] = [
-  "neck",
-  "shoulders",
-  "chest",
-  "back",
-  "hips",
-  "legs",
-  "arms",
-];
-
 const SKILLS: { id: SkillLevel; label: string; blurb: string }[] = [
   {
     id: "beginner",
     label: "Beginner",
-    blurb: "New to stretching and movement. Start gentle.",
+    blurb: "Beginner-level exercises only. Start gentle.",
   },
   {
     id: "intermediate",
     label: "Intermediate",
-    blurb: "Comfortable with basic movement and body awareness.",
+    blurb: "Includes beginner and intermediate exercises.",
   },
   {
     id: "advanced",
     label: "Advanced",
-    blurb: "Regular training, good mobility and control.",
+    blurb: "Beginner + intermediate + advanced exercises.",
   },
   {
     id: "pro",
     label: "Pro",
-    blurb: "Athlete or movement professional. Highest-skill items unlocked.",
+    blurb: "The full library, including high-skill movements.",
   },
 ];
 
@@ -81,6 +71,8 @@ export default function Onboarding() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
+  const clearEquipment = () => setEquipment([]);
+
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
@@ -114,7 +106,11 @@ export default function Onboarding() {
             <StepAreas selected={areas} onToggle={toggleArea} />
           )}
           {step === 3 && (
-            <StepEquipment selected={equipment} onToggle={toggleEquipment} />
+            <StepEquipment
+              selected={equipment}
+              onToggle={toggleEquipment}
+              onClear={clearEquipment}
+            />
           )}
         </div>
 
@@ -247,6 +243,12 @@ function StepAreas({
   selected: UserBodyArea[];
   onToggle: (a: UserBodyArea) => void;
 }) {
+  // Layout: Neck centered on row 1, then 3 + 3 below.
+  const rows: UserBodyArea[][] = [
+    ["neck"],
+    ["shoulders", "chest", "back"],
+    ["arms", "hips", "legs"],
+  ];
   return (
     <>
       <h2 className="text-2xl font-semibold mb-2">
@@ -256,23 +258,30 @@ function StepAreas({
         Pick any that bother you or that you'd like to spend more time on.
         Breaks will prioritise these and round out with full-body work.
       </p>
-      <div className="flex flex-wrap gap-2">
-        {USER_AREAS.map((a) => {
-          const active = selected.includes(a);
-          return (
-            <button
-              key={a}
-              onClick={() => onToggle(a)}
-              className={`px-4 py-2 rounded-lg border text-sm transition ${
-                active
-                  ? "bg-accent/20 border-accent text-text"
-                  : "bg-surface border-border text-muted hover:text-text"
-              }`}
-            >
-              {USER_AREA_LABELS[a]}
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-2">
+        {rows.map((row, i) => (
+          <div key={i} className="grid grid-cols-3 gap-2">
+            {/* Center single-item row */}
+            {row.length === 1 && <span />}
+            {row.map((a) => {
+              const active = selected.includes(a);
+              return (
+                <button
+                  key={a}
+                  onClick={() => onToggle(a)}
+                  className={`px-4 py-2 rounded-lg border text-sm transition ${
+                    active
+                      ? "bg-accent/20 border-accent text-text"
+                      : "bg-surface border-border text-muted hover:text-text"
+                  }`}
+                >
+                  {USER_AREA_LABELS[a]}
+                </button>
+              );
+            })}
+            {row.length === 1 && <span />}
+          </div>
+        ))}
       </div>
       {selected.length === 0 && (
         <p className="text-xs text-muted mt-4">
@@ -286,10 +295,13 @@ function StepAreas({
 function StepEquipment({
   selected,
   onToggle,
+  onClear,
 }: {
   selected: string[];
   onToggle: (id: Equipment) => void;
+  onClear: () => void;
 }) {
+  const noneActive = selected.length === 0;
   return (
     <>
       <h2 className="text-2xl font-semibold mb-2">
@@ -299,6 +311,22 @@ function StepEquipment({
         Optional. Exercises that need equipment you don't have will be hidden.
       </p>
       <div className="flex flex-col gap-3">
+        <button
+          onClick={onClear}
+          className={`text-left px-4 py-3 rounded-lg border transition ${
+            noneActive
+              ? "bg-accent/20 border-accent text-text"
+              : "bg-surface border-border text-muted hover:text-text"
+          }`}
+        >
+          <div className="flex items-baseline justify-between">
+            <span className="font-medium">None — I don't have any</span>
+            {noneActive && <span className="text-xs text-accent">✓</span>}
+          </div>
+          <div className="text-xs text-muted mt-1">
+            Bodyweight-only exercises will be served.
+          </div>
+        </button>
         {EQUIPMENT_OPTIONS.map((eq) => {
           const active = selected.includes(eq.id);
           return (

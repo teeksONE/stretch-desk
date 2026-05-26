@@ -47,20 +47,11 @@ export function buildRoutine(
     category === "strength" ? STRENGTHEN_LIBRARY : STRETCH_LIBRARY;
 
   const candidates = filterLibrary(library, profile);
-  if (candidates.length === 0) {
-    // Profile is too restrictive (e.g. pro-only seated with no equipment).
-    // Fall back to unfiltered library so the user still gets something.
-    const fallback = sampleByScore(library, profile, targetSeconds);
-    return {
-      name: category === "strength" ? "Strength" : "Stretch",
-      steps: fallback.map(libraryItemToStep),
-    };
-  }
-
-  const chosen = sampleByScore(candidates, profile, targetSeconds);
+  const pool = candidates.length === 0 ? library : candidates;
+  const chosen = sampleByScore(pool, profile, targetSeconds);
   return {
     name: category === "strength" ? "Strength" : "Stretch",
-    steps: chosen.map(libraryItemToStep),
+    steps: chosen.map((it) => libraryItemToStep(it, category)),
   };
 }
 
@@ -124,20 +115,35 @@ function sampleByScore(
 }
 
 function stepTotalSeconds(item: LibraryItem): number {
-  return item.durationSeconds * Math.max(1, item.repetitions);
+  // Library `durationSeconds` is the *total* time the exercise takes,
+  // not per-rep. Reps and duration are independent: reps tell you how
+  // many to do, duration tells you how long the whole thing takes.
+  return Math.max(1, item.durationSeconds);
 }
 
-function libraryItemToStep(item: LibraryItem): RoutineStep {
-  const dur = item.durationSeconds;
+function libraryItemToStep(
+  item: LibraryItem,
+  category: Category,
+): RoutineStep {
+  const dur = stepTotalSeconds(item);
   const reps = Math.max(1, item.repetitions);
-  const timing =
-    reps > 1 ? `${reps} reps × ${dur}s each` : `Hold for ${dur}s`;
-  const equipHint = item.equipment ? ` Using: ${item.equipment}.` : "";
-  const muscle = item.primaryMuscle ? `Target: ${item.primaryMuscle}. ` : "";
+  const muscle = item.primaryMuscle ? `Target: ${item.primaryMuscle}.` : "";
+  const equipHint = item.equipment ? ` Equipment: ${item.equipment}.` : "";
+
+  let action: string;
+  if (category === "strength") {
+    action = reps > 1 ? `${reps} reps over the timer.` : "Work to the timer.";
+  } else {
+    // stretch — duration matters because you're holding
+    action =
+      reps > 1
+        ? `${reps} reps — ~${Math.round(dur / reps)}s each.`
+        : `Hold for ${dur}s.`;
+  }
   return {
     name: item.name,
-    durationSeconds: stepTotalSeconds(item),
-    instruction: `${muscle}${timing}.${equipHint}`.trim(),
+    durationSeconds: dur,
+    instruction: [muscle, action].filter(Boolean).join(" ").trim() + equipHint,
   };
 }
 

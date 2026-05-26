@@ -5,6 +5,7 @@ import App from "./App";
 import Timer from "./routes/Timer";
 import BreakOverlay from "./routes/BreakOverlay";
 import Settings from "./routes/Settings";
+import Profile from "./routes/Profile";
 import Warning from "./routes/Warning";
 import Onboarding from "./routes/Onboarding";
 import "./index.css";
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/" element={<App />}>
           <Route index element={<Timer />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="/break/:exerciseId" element={<BreakOverlay />} />

@@ -42,6 +42,14 @@ function App() {
             Timer
           </Link>
           <Link
+            to="/profile"
+            className={
+              location.pathname === "/profile" ? "text-text" : "hover:text-text"
+            }
+          >
+            Profile
+          </Link>
+          <Link
             to="/settings"
             className={
               location.pathname === "/settings" ? "text-text" : "hover:text-text"
