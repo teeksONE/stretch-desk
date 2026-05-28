@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Convert Stretch_Desk_Comprehensive_Rehab_Library_v2.xlsx into a typed
-TypeScript module at src/content/library.ts.
+Convert stretch_desk_movements_v2.xlsx into a typed TypeScript module
+at src/content/library.ts.
 
 Usage:
     python3 scripts/build-library.py
@@ -22,7 +22,7 @@ except ImportError:
     sys.exit("openpyxl is required. Install with: pip3 install openpyxl")
 
 REPO = Path(__file__).resolve().parent.parent
-XLSX = REPO / "Stretch_Desk_Comprehensive_Rehab_Library_v2.xlsx"
+XLSX = REPO / "stretch_desk_movements_v2.xlsx"
 OUT = REPO / "src" / "content" / "library.ts"
 
 CLINICAL_AREAS = [
@@ -42,7 +42,7 @@ CLINICAL_AREAS = [
 ]
 
 SKILL_LEVELS = ("beginner", "intermediate", "advanced", "pro")
-CONTEXTS = ("Seated", "Standing", "Seated or standing")
+CONTEXTS = ("Seated", "Standing", "Seated or standing", "Lying down")
 
 
 def duration_to_seconds(value) -> int:
@@ -110,6 +110,12 @@ def read_table(ws, name_field: str) -> list[dict]:
             ctx = "Seated"
         needs = coerce_bool(d.get("Additional Equipment Required"))
         equipment = d.get("Additional Equipment")
+        hold = d.get("Hold (s)")
+        try:
+            hold_seconds = int(hold) if hold not in (None, "") else None
+        except (TypeError, ValueError):
+            hold_seconds = None
+        description = d.get("Description")
         items.append({
             "area": area,
             "primaryMuscle": (d.get("Primary Target Muscle Group") or "").strip(),
@@ -117,23 +123,25 @@ def read_table(ws, name_field: str) -> list[dict]:
             "name": (d.get(name_field) or "").strip(),
             "durationSeconds": duration_to_seconds(d.get("Duration")),
             "repetitions": int(d.get("Repetitions") or 1),
+            "holdSeconds": hold_seconds,
             "skillLevel": skill,
             "context": ctx,
             "needsEquipment": needs,
             "equipment": (str(equipment).strip() if needs and equipment else None),
+            "description": (str(description).strip() if description else ""),
         })
     return items
 
 
 def emit_ts(stretch: list[dict], strengthen: list[dict]) -> str:
-    header = f"""// AUTO-GENERATED from Stretch_Desk_Comprehensive_Rehab_Library_v2.xlsx
+    header = f"""// AUTO-GENERATED from stretch_desk_movements_v2.xlsx
 // Do NOT edit by hand. Regenerate with: python3 scripts/build-library.py
 
 export type ClinicalArea =
 {chr(10).join(f'  | {json.dumps(a)}' for a in CLINICAL_AREAS)};
 
 export type SkillLevel = "beginner" | "intermediate" | "advanced" | "pro";
-export type Context = "Seated" | "Standing" | "Seated or standing";
+export type Context = "Seated" | "Standing" | "Seated or standing" | "Lying down";
 
 export interface LibraryItem {{
   area: ClinicalArea;
@@ -142,10 +150,12 @@ export interface LibraryItem {{
   name: string;
   durationSeconds: number;
   repetitions: number;
+  holdSeconds: number | null;
   skillLevel: SkillLevel;
   context: Context;
   needsEquipment: boolean;
   equipment: string | null;
+  description: string;
 }}
 
 // User-facing simplified body areas. Each maps to one or more clinical complexes.
@@ -205,10 +215,14 @@ export const USER_AREA_LABELS: Record<UserBodyArea, string> = {{
             lines.append(f"    name: {json.dumps(it['name'])},")
             lines.append(f"    durationSeconds: {it['durationSeconds']},")
             lines.append(f"    repetitions: {it['repetitions']},")
+            lines.append(
+                f"    holdSeconds: {it['holdSeconds'] if it['holdSeconds'] is not None else 'null'},"
+            )
             lines.append(f"    skillLevel: {json.dumps(it['skillLevel'])},")
             lines.append(f"    context: {json.dumps(it['context'])},")
             lines.append(f"    needsEquipment: {str(it['needsEquipment']).lower()},")
             lines.append(f"    equipment: {json.dumps(it['equipment'])},")
+            lines.append(f"    description: {json.dumps(it['description'])},")
             lines.append("  },")
         lines.append("];")
         return "\n".join(lines)
@@ -220,8 +234,8 @@ def main() -> int:
     if not XLSX.exists():
         sys.exit(f"Spreadsheet not found at {XLSX}")
     wb = openpyxl.load_workbook(XLSX, data_only=True)
-    stretch = read_table(wb["Stretching Table"], "Stretch Name")
-    strengthen = read_table(wb["Strengthening Table"], "Movement Name")
+    stretch = read_table(wb["Stretch movements"], "Stretch Name")
+    strengthen = read_table(wb["Strength Movements"], "Movement Name")
     print(f"Stretching: {len(stretch)} items")
     print(f"Strengthening: {len(strengthen)} items")
     OUT.parent.mkdir(parents=True, exist_ok=True)

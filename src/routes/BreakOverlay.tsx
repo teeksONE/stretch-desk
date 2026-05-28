@@ -146,7 +146,7 @@ export default function BreakOverlay() {
           <h2 className="text-4xl font-medium mb-4 text-center">
             {currentStep.name}
           </h2>
-          <p className="max-w-xl text-center text-lg text-muted leading-relaxed mb-8">
+          <p className="max-w-2xl text-left text-base text-muted leading-relaxed mb-8 max-h-[40vh] overflow-y-auto">
             {currentStep.instruction}
           </p>
           <div className="text-6xl font-mono tabular-nums mb-6">

@@ -39,6 +39,7 @@ export default function Profile() {
   const setProfileAreasOfFocus = useTimer((s) => s.setProfileAreasOfFocus);
   const setProfileSkillLevel = useTimer((s) => s.setProfileSkillLevel);
   const setProfileWorkspace = useTimer((s) => s.setProfileWorkspace);
+  const setProfileCanLieDown = useTimer((s) => s.setProfileCanLieDown);
   const setProfileEquipment = useTimer((s) => s.setProfileEquipment);
   const toggleProfileEquipment = useTimer((s) => s.toggleProfileEquipment);
   const resetOnboarding = useTimer((s) => s.resetOnboarding);
@@ -71,7 +72,7 @@ export default function Profile() {
 
       <div>
         <div className="text-sm uppercase tracking-widest text-muted mb-3">
-          Workspace
+          Workout space
         </div>
         <div className="flex gap-2 flex-wrap">
           {WORKSPACE_OPTIONS.map((w) => (
@@ -87,6 +88,19 @@ export default function Profile() {
               {w.label}
             </button>
           ))}
+        </div>
+        <button
+          onClick={() => setProfileCanLieDown(!profile.canLieDown)}
+          className={`mt-2 px-4 py-2 rounded-lg border text-sm ${
+            profile.canLieDown
+              ? "bg-accent/20 border-accent text-text"
+              : "bg-surface border-border text-muted hover:text-text"
+          }`}
+        >
+          {profile.canLieDown ? "✓ " : ""}I can lie on the floor
+        </button>
+        <div className="text-xs text-muted mt-2">
+          Floor exercises are skipped unless this is on.
         </div>
       </div>
 

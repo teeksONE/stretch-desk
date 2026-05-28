@@ -55,14 +55,22 @@ export function buildRoutine(
   };
 }
 
+function contextAllowed(item: LibraryItem, profile: Profile): boolean {
+  // Lying-down exercises require explicit floor access regardless of workspace.
+  if (item.context === "Lying down") return profile.canLieDown;
+  // Seated-only workspaces exclude standing exercises.
+  if (profile.workspace === "seated") {
+    return item.context === "Seated" || item.context === "Seated or standing";
+  }
+  // standing-ok permits seated and standing items.
+  return true;
+}
+
 function filterLibrary(library: LibraryItem[], profile: Profile): LibraryItem[] {
   const userSkill = SKILL_RANK[profile.skillLevel];
   return library.filter((item) => {
     if (SKILL_RANK[item.skillLevel] > userSkill) return false;
-    if (profile.workspace === "seated") {
-      if (item.context !== "Seated" && item.context !== "Seated or standing")
-        return false;
-    }
+    if (!contextAllowed(item, profile)) return false;
     if (!libraryEquipmentSatisfied(item.equipment, profile.equipment))
       return false;
     return true;
@@ -126,25 +134,38 @@ function libraryItemToStep(
   category: Category,
 ): RoutineStep {
   const dur = stepTotalSeconds(item);
+  // Prefer the authored description; fall back to a synthesised line for any
+  // item that doesn't yet have one.
+  const instruction = item.description?.trim()
+    ? item.description.trim()
+    : synthesiseInstruction(item, category, dur);
+  return {
+    name: item.name,
+    durationSeconds: dur,
+    instruction,
+  };
+}
+
+function synthesiseInstruction(
+  item: LibraryItem,
+  category: Category,
+  dur: number,
+): string {
   const reps = Math.max(1, item.repetitions);
   const muscle = item.primaryMuscle ? `Target: ${item.primaryMuscle}.` : "";
   const equipHint = item.equipment ? ` Equipment: ${item.equipment}.` : "";
-
   let action: string;
   if (category === "strength") {
     action = reps > 1 ? `${reps} reps over the timer.` : "Work to the timer.";
   } else {
-    // stretch — duration matters because you're holding
     action =
-      reps > 1
-        ? `${reps} reps — ~${Math.round(dur / reps)}s each.`
-        : `Hold for ${dur}s.`;
+      item.holdSeconds && reps > 1
+        ? `${reps} reps — hold ~${item.holdSeconds}s each.`
+        : item.holdSeconds
+          ? `Hold for ${item.holdSeconds}s.`
+          : `Hold for ${dur}s.`;
   }
-  return {
-    name: item.name,
-    durationSeconds: dur,
-    instruction: [muscle, action].filter(Boolean).join(" ").trim() + equipHint,
-  };
+  return [muscle, action].filter(Boolean).join(" ").trim() + equipHint;
 }
 
 function pickLegacyRoutine(

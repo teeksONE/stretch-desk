@@ -36,18 +36,18 @@ function App() {
         <div className="font-semibold tracking-tight">Stretch Desk</div>
         <div className="flex gap-4 text-sm text-muted">
           <Link
-            to="/"
-            className={location.pathname === "/" ? "text-text" : "hover:text-text"}
-          >
-            Timer
-          </Link>
-          <Link
             to="/profile"
             className={
               location.pathname === "/profile" ? "text-text" : "hover:text-text"
             }
           >
             Profile
+          </Link>
+          <Link
+            to="/"
+            className={location.pathname === "/" ? "text-text" : "hover:text-text"}
+          >
+            Timer
           </Link>
           <Link
             to="/settings"

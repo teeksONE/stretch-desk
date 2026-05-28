@@ -13,6 +13,7 @@ export interface Profile {
   areasOfFocus: UserBodyArea[];
   skillLevel: SkillLevel;
   workspace: Workspace;
+  canLieDown: boolean;
   equipment: string[];
   onboardingComplete: boolean;
 }
@@ -21,6 +22,7 @@ export const DEFAULT_PROFILE: Profile = {
   areasOfFocus: [],
   skillLevel: "beginner",
   workspace: "standing-ok",
+  canLieDown: false,
   equipment: [],
   onboardingComplete: false,
 };
@@ -42,6 +44,7 @@ interface TimerState {
   setProfileAreasOfFocus: (areas: UserBodyArea[]) => void;
   setProfileSkillLevel: (level: SkillLevel) => void;
   setProfileWorkspace: (workspace: Workspace) => void;
+  setProfileCanLieDown: (canLieDown: boolean) => void;
   setProfileEquipment: (items: string[]) => void;
   toggleProfileEquipment: (item: string) => void;
   completeOnboarding: () => void;
@@ -75,6 +78,8 @@ export const useTimer = create<TimerState>()(
         set((s) => ({ profile: { ...s.profile, skillLevel: level } })),
       setProfileWorkspace: (workspace) =>
         set((s) => ({ profile: { ...s.profile, workspace } })),
+      setProfileCanLieDown: (canLieDown) =>
+        set((s) => ({ profile: { ...s.profile, canLieDown } })),
       setProfileEquipment: (items) =>
         set((s) => ({ profile: { ...s.profile, equipment: items } })),
       toggleProfileEquipment: (item) =>

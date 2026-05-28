@@ -52,11 +52,13 @@ export default function Onboarding() {
   const setProfileAreasOfFocus = useTimer((s) => s.setProfileAreasOfFocus);
   const setProfileSkillLevel = useTimer((s) => s.setProfileSkillLevel);
   const setProfileWorkspace = useTimer((s) => s.setProfileWorkspace);
+  const setProfileCanLieDown = useTimer((s) => s.setProfileCanLieDown);
   const setProfileEquipment = useTimer((s) => s.setProfileEquipment);
   const completeOnboarding = useTimer((s) => s.completeOnboarding);
 
   const [step, setStep] = useState(0);
   const [workspace, setWorkspace] = useState<Workspace>(profile.workspace);
+  const [canLieDown, setCanLieDown] = useState<boolean>(profile.canLieDown);
   const [skill, setSkill] = useState<SkillLevel>(profile.skillLevel);
   const [areas, setAreas] = useState<UserBodyArea[]>(profile.areasOfFocus);
   const [equipment, setEquipment] = useState<string[]>(profile.equipment);
@@ -78,6 +80,7 @@ export default function Onboarding() {
 
   const finish = () => {
     setProfileWorkspace(workspace);
+    setProfileCanLieDown(canLieDown);
     setProfileSkillLevel(skill);
     setProfileAreasOfFocus(areas);
     setProfileEquipment(equipment);
@@ -97,7 +100,12 @@ export default function Onboarding() {
 
         <div className="mt-10">
           {step === 0 && (
-            <StepWorkspace selected={workspace} onSelect={setWorkspace} />
+            <StepWorkspace
+              selected={workspace}
+              onSelect={setWorkspace}
+              canLieDown={canLieDown}
+              onToggleLieDown={() => setCanLieDown((v) => !v)}
+            />
           )}
           {step === 1 && (
             <StepSkill selected={skill} onSelect={setSkill} />
@@ -179,14 +187,18 @@ function Progress({ step, total }: { step: number; total: number }) {
 function StepWorkspace({
   selected,
   onSelect,
+  canLieDown,
+  onToggleLieDown,
 }: {
   selected: Workspace;
   onSelect: (w: Workspace) => void;
+  canLieDown: boolean;
+  onToggleLieDown: () => void;
 }) {
   return (
     <>
       <h2 className="text-2xl font-semibold mb-2">
-        Where are you working from?
+        Tell us about your workout space
       </h2>
       <p className="text-sm text-muted mb-6">
         This decides whether breaks include standing or floor-based moves.
@@ -201,6 +213,28 @@ function StepWorkspace({
             onClick={() => onSelect(w.id)}
           />
         ))}
+      </div>
+
+      <div className="mt-5">
+        <button
+          onClick={onToggleLieDown}
+          className={`w-full text-left px-4 py-3 rounded-lg border transition ${
+            canLieDown
+              ? "bg-accent/20 border-accent text-text"
+              : "bg-surface border-border text-muted hover:text-text"
+          }`}
+        >
+          <div className="flex items-baseline justify-between">
+            <span className="font-medium">
+              I can lie on the floor at my workspace
+            </span>
+            {canLieDown && <span className="text-xs text-accent">✓</span>}
+          </div>
+          <div className="text-xs text-muted mt-1">
+            Unlocks floor-based exercises. Leave off and we'll skip anything
+            that needs lying down.
+          </div>
+        </button>
       </div>
     </>
   );
